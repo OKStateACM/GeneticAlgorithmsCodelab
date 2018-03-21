@@ -81,7 +81,7 @@ class Organism:
         for gene, actual in zip(self.genotype, target):
             if gene == actual:
                 correct_cnt += 1
-        return correct_cnt/len(target)
+        self.fitness = correct_cnt/len(target)
 ```
 
 #### Notes for those maybe less familiar with python:

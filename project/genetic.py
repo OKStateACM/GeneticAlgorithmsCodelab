@@ -16,7 +16,20 @@ class Organism:
         for gene, actual in zip(self.genotype, target):
             if gene == actual:
                 correct_cnt += 1
-        return correct_cnt/len(target)
+        self.fitness = correct_cnt/len(target)
 
 class Population:
-    def __init__(self, pop_size, ):
+    def __init__(self, pop_size, mutation_rate, target_word):
+        self.target = target_word
+        self.mutation_rate = mutation_rate
+        self.pop_size = pop_size
+
+        self.population = []
+        for i in range(pop_size):
+            self.population.append(Organism(len(self.target)))
+
+        self.calc_fitness()
+
+    def calc_fitness(self):
+        for organism in self.population:
+            organism.calc_fitness(self.target)
