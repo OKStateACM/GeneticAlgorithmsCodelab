@@ -35,16 +35,24 @@ It's **phenotype** would then be:
 In fact, let's go ahead and make an ```Organsim``` class in python. Make a new python file (call it whatever you want)
 
 ```python
+import string
+import random
+
 class Organism:
-    def __init__(self, genes): # Constructor method
+    def __init__(self, gene_length): # Constructor method
+        # The "Nucleotides", i.e. what each gene is made of
+        self.nucleotides = list(string.ascii_letters + '.,!?, ')
+
         # The genotype, just a list of characters
-        self.genotype = genes
+        self.genotype = []
+        for i in range(gene_length):
+          self.genotype.append(random.choice(self.nucleotides))
 
         # The phenotype, just the genotype converted to a string
         self.phenotype = ''.join(self.genotype)
 ```
 
-All this is doing is defining a class called Organism. In the constructor we pass in a list of characters called ```genes```. This becomes the genotype. The phenotype is then just the genotype converted to a string.
+All this is doing is defining a class called Organism. In the constructor we pass in an integer called ```gene_length```. This is just how long the gene sequence should be. We then create the **genotype** by appending a random character ```gene_length``` times. The phenotype is then just the genotype converted to a string.
 
 ### Fitness function
 The **fitness function** is one of the most important parts of any genetic algorithm. You can think of it as a function that _tells you how good an organism is_, and therefore how likely it should be to transfer it's genes to the next generation. (Think _survival of the fittest_)
@@ -52,10 +60,18 @@ The **fitness function** is one of the most important parts of any genetic algor
 The fitness function for our project is going to be relatively simple. Since we know the correct answer, we can just see how many characters are in the right place. Let's write it! In the Organism class, define a new function called ```calc_fitness```
 
 ```python
+import string
+import random
+
 class Organism:
-    def __init__(self, genes): # Constructor method
+    def __init__(self, gene_length): # Constructor method
+        # The "Nucleotides", i.e. what each gene is made of
+        self.nucleotides = list(string.ascii_letters + '.,!?, ')
+
         # The genotype, just a list of characters
-        self.genotype = genes
+        self.genotype = []
+        for i in range(gene_length):
+          self.genotype.append(random.choice(self.nucleotides))
 
         # The phenotype, just the genotype converted to a string
         self.phenotype = ''.join(self.genotype)
@@ -68,7 +84,7 @@ class Organism:
         return correct_cnt/len(target)
 ```
 
-#### Aside for those maybe less familiar with python:
+#### Notes for those maybe less familiar with python:
 The only kind of confusing thing here is the line
 is:
 ```python
