@@ -1,3 +1,7 @@
+import numpy as np
+import string
+import random
+
 class Organism:
     def __init__(self, gene_length): # Constructor method
         # The "Nucleotides", i.e. what each gene is made of
@@ -18,6 +22,25 @@ class Organism:
                 correct_cnt += 1
         self.fitness = correct_cnt/len(target)
 
+    def crossover(self, partner):
+        child_genome = []
+
+        for i in range(len(self.genotype)):
+            if (i < len(self.genotype)/2):
+                child_genome.append(self.genotype[i])
+            else:
+                child_genome.append(partner.genotype[i])
+
+        child = Organism(len(self.genotype))
+        child.genotype = child_genome;
+
+        return child
+
+    def mutate(self, mutation_rate):
+        for i in range(len(self.genotype)):
+            if random.random() <= mutation_rate:
+                self.genotype[i] = random.choice(self.nucleotides)
+
 class Population:
     def __init__(self, pop_size, mutation_rate, target_word):
         self.target = target_word
@@ -33,3 +56,20 @@ class Population:
     def calc_fitness(self):
         for organism in self.population:
             organism.calc_fitness(self.target)
+
+    def select_two_organisms(self):
+        fitnesses = np.array([o.fitness for o in self.population])
+        fit_sum = fitnesses.sum()
+        p = list(map(lambda x: x/fit_sum, fitnesses))
+        mates = np.random.choice(self.population, size=2, p=p)
+        return (mates[0], mates[1])
+
+    def natural_selection(self):
+        new_pop = []
+        for i in range(self.pop_size):
+            a, b = self.select_two_organisms()
+            new_organism = a.crossover(b)
+            new_organism.mutate(self.mutation_rate)
+            new_pop.append(new_organism)
+        self.population = new_pop
+        self.calc_fitness()
