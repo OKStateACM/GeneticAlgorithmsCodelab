@@ -32,7 +32,7 @@ It's **phenotype** would then be:
 "go pokes"
 ```
 
-In fact, let's go ahead and make an ```Organsim``` class in python. Make a new python file (call it whatever you want)
+In fact, let's go ahead and make an ```Organsim``` class in python. Make a new python file called ```genetic.py```
 
 ```python
 import string
@@ -81,11 +81,13 @@ class Organism:
         for gene, actual in zip(self.genotype, target):
             if gene == actual:
                 correct_cnt += 1
-        self.fitness = correct_cnt/len(target)
+        self.fitness = (correct_cnt/len(target)) ** 100
 ```
 
+Note that we are raising the fitness to 100. It is generally a good idea to make fitness functions exponential rather than linear. **Why?** Well, if you think about it, a string that has 10/11 characters right is **much better** than a string that has 9/11 characters right. We need to incentivize the algorithm to choose the 10/11 fitness instead of 9/11. Also, the choice of 100 was arbitrary.
+
 #### Notes for those maybe less familiar with python:
-The only kind of confusing thing here is the line
+The only kind of confusing python thing in this function is the line
 is:
 ```python
 for gene, actual in zip(self.genotype, target):

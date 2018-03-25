@@ -20,7 +20,7 @@ class Organism:
         for gene, actual in zip(self.genotype, target):
             if gene == actual:
                 correct_cnt += 1
-        self.fitness = correct_cnt/len(target)
+        self.fitness = (correct_cnt/len(target)) ** 100
 
     def crossover(self, partner):
         child_genome = []
@@ -57,19 +57,26 @@ class Population:
         for organism in self.population:
             organism.calc_fitness(self.target)
 
-    def select_two_organisms(self):
-        fitnesses = np.array([o.fitness for o in self.population])
-        fit_sum = fitnesses.sum()
-        p = list(map(lambda x: x/fit_sum, fitnesses))
+    def select_two_organisms(self, p):
         mates = np.random.choice(self.population, size=2, p=p)
         return (mates[0], mates[1])
 
     def natural_selection(self):
         new_pop = []
+        fitnesses = np.array([o.fitness for o in self.population])
+        fit_sum = fitnesses.sum()
+        p = list(map(lambda x: x/fit_sum, fitnesses))
         for i in range(self.pop_size):
-            a, b = self.select_two_organisms()
+            a, b = self.select_two_organisms(p)
             new_organism = a.crossover(b)
             new_organism.mutate(self.mutation_rate)
             new_pop.append(new_organism)
         self.population = new_pop
         self.calc_fitness()
+
+    def get_best(self):
+        best = self.population[0]
+        for organism in self.population:
+            if organism.fitness >= best.fitness:
+                best = organism
+        return best
