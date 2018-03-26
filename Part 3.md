@@ -61,4 +61,4 @@ def __init__(self, pop_size, mutation_rate, target_word):
 
 So that takes care of steps 1 and 2 in the algorithm! Now we need to perform **Natural Selection**
 
-[Part 4: Natural Selection]()
+[Part 4: Natural Selection](https://github.com/OKStateACM/GeneticAlgorithmsCodelab/blob/master/Part%204.md)

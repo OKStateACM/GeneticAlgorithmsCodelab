@@ -46,4 +46,4 @@ print(''.join(p.get_best().genotype))
 
 Run it and see what happens! If all went well, you should see the string start to look like the quote. Congratulations! You've successfully implemented a genetic algorithm!
 
-[Part 6: Where to go from here]()
+[Part 6: Where to go from here](https://github.com/OKStateACM/GeneticAlgorithmsCodelab/blob/master/Part%206.md)

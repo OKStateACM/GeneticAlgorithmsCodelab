@@ -115,4 +115,4 @@ def natural_selection(self):
   self.calc_fitness()
 ```
 
-[Part 5: Putting it all Together]()
+[Part 5: Putting it all Together](https://github.com/OKStateACM/GeneticAlgorithmsCodelab/blob/master/Part%205.md)

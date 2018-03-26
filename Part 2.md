@@ -107,4 +107,4 @@ for l_item, w_item in zip(w, l):
   print(l_item, ', ', w_item)
 ```
 
-[Part 3: Building up the Population class]()
+[Part 3: Building up the Population class](https://github.com/OKStateACM/GeneticAlgorithmsCodelab/blob/master/Part%203.md)

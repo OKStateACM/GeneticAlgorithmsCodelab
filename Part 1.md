@@ -19,4 +19,4 @@ print("Output:", txt)
 
 But let's see how we could solve this using genetic algorithms.
 
-[Part 2: How this is going to work]()
+[Part 2: How this is going to work](https://github.com/OKStateACM/GeneticAlgorithmsCodelab/blob/master/Part%202.md)

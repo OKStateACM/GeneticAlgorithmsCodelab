@@ -14,4 +14,4 @@ Genetic algorithms are algorithms used in Artificial Intelligence that are inspi
 
 If none of this makes sense right now, it will later. Let's get started writing code!
 
-[Part 1: Introduction to the Project]()
+[Part 1: Introduction to the Project](https://github.com/OKStateACM/GeneticAlgorithmsCodelab/blob/master/Part%201.md)
