@@ -5,13 +5,27 @@
         <title>Genetic Algorithm Visualizer</title>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
         <link href="https://maxcdn.bootstrapcdn.com/bootswatch/4.0.0/cosmo/bootstrap.min.css" rel="stylesheet"/>
+        <style>
+            #gen-table td {
+                border: 1px solid lightgray;
+            }
+
+            #gen-body > tr:first-child {
+                border: 1px red;
+            }
+
+            .newest {
+                font-size: 300%;
+                font-style: bold;
+            }
+        </style>
     </head>
     <body style="width: 100vw;">
         <div>
             <table style="width: 90%; align: center; text-align: center; margin: 0 auto;">
                 <td style="width: 33%;">
                     <label for="target-input">Target:</label>
-                    <input id="target-input" class="form-control" placeholder="Enter a target string..."></input>
+                    <input id="target-input" oninput="onTgtChange();" class="form-control" placeholder="Enter a target string..."></input>
                 </td>
                 <td style="width: 34%;">
                     <label for="mutation-input">Mutation Rate (</label><span id="mut-display">0.5</span>)<br>
@@ -25,47 +39,93 @@
         </div>
         <br/>
         <center>
-            <input id="start" onclick="start();" type="submit" value="Start" class="btn btn-success" style="width: 50%;"></input>
+            <input id="start" onclick="start();" type="submit" value="Start" class="btn" style="width: 50%;"></input>
             <input id="stop" onclick="stop();" type="submit" value="Stop" class="btn btn-danger" style="width: 50%; display: none;"></input>
         </center>
         <br/>
         <table id="gen-table" style="width: 100%; border: 1px solid lightgray; text-align: center;">
-            <tr>
-                <th style="width: 10%; border: 1px solid lightgray;">Gen</th>
-                <th>Fittest</th>
-                <th style="width: 10%; border: 1px solid lightgray;">Fitness</th>
-            </tr>
+            <thead>
+                <tr id="heading">
+                    <th style="width: 10%; border: 1px solid lightgray;">Gen</th>
+                    <th>Fittest</th>
+                    <th style="width: 20%; border: 1px solid lightgray;">Fitness</th>
+                </tr>
+            </thead>
+            <tbody id="gen-body"></tbody>
         </table>
         <script>
             let tgt = document.getElementById('target-input');
             let mut = document.getElementById('mutation-input');
             let pop = document.getElementById('pop-input');
             let table = document.getElementById('gen-table');
+            let tableBody = document.getElementById('gen-body');
+            let startBtn = document.getElementById('start');
+            let stopBtn = document.getElementById('stop');
 
             let PythonShell = require('python-shell');
+            let python;
 
-            let generations = [];
+            let iter = 0;
+
+            function onTgtChange() {
+                if(tgt.value.length == 0) {
+                    startBtn.classList = 'btn'
+                }
+                else {
+                    startBtn.classList = 'btn btn-success'
+                }
+            }
 
             function onMutSliderChange() {
                 document.getElementById('mut-display').innerHTML = document.getElementById('mutation-input').value / 100;
             }
 
             function start() {
+                if(tgt.value.length == 0) {return;}
+                tableBody.innerHTML = '';
+                iter = 0;
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
                 let options = {
                     args: [tgt.value, mut.value/100, pop.value]
                 }
-                let python = new PythonShell('script.py', options);
-                
+                python = new PythonShell('script.py', options);
+
                 python.on('message', (message) => {
-                    let gen = document.createElement('tr');
+                    console.log(message);
+                    iter++;
                     let msg = message.split('|');
-                    generations.push(msg);
-                    console.log(msg);
+                    let gen = document.createElement('tr');
+                    let genCount = document.createElement('td');
+                    genCount.innerHTML = iter;
+                    let genFittest = document.createElement('td');
+                    genFittest.innerHTML = msg[0];
+                    let genFitness = document.createElement('td');
+                    genFitness.innerHTML = parseFloat(msg[1]) > 0.01 ? msg[1] : parseFloat(msg[1]).toExponential(2);
+                    gen.appendChild(genCount);
+                    gen.appendChild(genFittest);
+                    gen.appendChild(genFitness);
+                    gen.classList = 'newest';
+                    if(tableBody.childNodes.length > 0) {
+                        document.getElementsByClassName('newest')[0].classList = '';
+                        tableBody.insertBefore(gen, tableBody.childNodes[0]);
+                    }
+                    else {
+                        tableBody.appendChild(gen);
+                    }
+                });
+
+                python.end(error => {
+                    if(error) {throw error;}
+                    stop();
                 });
             }
 
             function stop() {
-
+                startBtn.style.display = 'block';
+                stopBtn.style.display = 'none';
+                python.childProcess.kill('SIGINT');
+                iter = 0;
             }
         </script>
     </body>
