@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Genetic Algorithm Visualizer</title>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        <link href="https://maxcdn.bootstrapcdn.com/bootswatch/4.0.0/cosmo/bootstrap.min.css" rel="stylesheet"/>
+    </head>
+    <body style="width: 100vw;">
+        <div>
+            <table style="width: 90%; align: center; text-align: center; margin: 0 auto;">
+                <td style="width: 33%;">
+                    <label for="target-input">Target:</label>
+                    <input id="target-input" class="form-control" placeholder="Enter a target string..."></input>
+                </td>
+                <td style="width: 34%;">
+                    <label for="mutation-input">Mutation Rate (</label><span id="mut-display">0.5</span>)<br>
+                    <input id="mutation-input" type="range" min="0" max="100" value="50" oninput="onMutSliderChange();"></input>
+                </td>
+                <td style="width: 33%;">
+                    <label for="pop-input">Population Size:</label>
+                    <input id="pop-input" type="number" class="form-control" value="100"></input>
+                </td>
+            </table>
+        </div>
+        <br/>
+        <center>
+            <input id="start" onclick="start();" type="submit" value="Start" class="btn btn-success" style="width: 50%;"></input>
+            <input id="stop" onclick="stop();" type="submit" value="Stop" class="btn btn-danger" style="width: 50%; display: none;"></input>
+        </center>
+        <br/>
+        <table id="gen-table" style="width: 100%; border: 1px solid lightgray; text-align: center;">
+            <tr>
+                <th style="width: 10%; border: 1px solid lightgray;">Gen</th>
+                <th>Fittest</th>
+                <th style="width: 10%; border: 1px solid lightgray;">Fitness</th>
+            </tr>
+        </table>
+        <script>
+            let tgt = document.getElementById('target-input');
+            let mut = document.getElementById('mutation-input');
+            let pop = document.getElementById('pop-input');
+            let table = document.getElementById('gen-table');
+
+            let PythonShell = require('python-shell');
+
+            let generations = [];
+
+            function onMutSliderChange() {
+                document.getElementById('mut-display').innerHTML = document.getElementById('mutation-input').value / 100;
+            }
+
+            function start() {
+                let options = {
+                    args: [tgt.value, mut.value/100, pop.value]
+                }
+                let python = new PythonShell('script.py', options);
+                
+                python.on('message', (message) => {
+                    let gen = document.createElement('tr');
+                    let msg = message.split('|');
+                    generations.push(msg);
+                    console.log(msg);
+                });
+            }
+
+            function stop() {
+
+            }
+        </script>
+    </body>
+</html>
