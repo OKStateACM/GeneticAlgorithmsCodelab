@@ -5,17 +5,27 @@
         <title>Genetic Algorithm Visualizer</title>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
         <link href="https://maxcdn.bootstrapcdn.com/bootswatch/4.0.0/cosmo/bootstrap.min.css" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css?family=Fira+Mono" rel="stylesheet">
         <style>
             #gen-table td {
                 border: 1px solid lightgray;
                 font-size: 300%;
+            }
+
+            .genotype {
+                font-family: 'Fira Mono', monospace;
+            }
+
+            .old {
                 color: lightgray;
             }
 
             .newest {
-                /* font-size: 300%; */
-                color: black !important;
-                background-color: gray;
+                color: black;
+            }
+
+            .diff {
+                background-color: rgba(0, 255, 0, 0.1)
             }
         </style>
     </head>
@@ -61,6 +71,8 @@
             let startBtn = document.getElementById('start');
             let stopBtn = document.getElementById('stop');
 
+            let prev = '';
+
             let PythonShell = require('python-shell');
             let python;
 
@@ -91,14 +103,15 @@
                 python = new PythonShell('script.py', options);
 
                 python.on('message', (message) => {
-                    console.log(message);
                     iter++;
                     let msg = message.split('|');
                     let gen = document.createElement('tr');
                     let genCount = document.createElement('td');
                     genCount.innerHTML = iter;
                     let genFittest = document.createElement('td');
-                    genFittest.innerHTML = msg[0];
+                    genFittest.innerHTML = iter > 1 ? diff(prev, msg[0]) : msg[0];
+                    prev = msg[0];
+                    genFittest.classList = 'genotype';
                     let genFitness = document.createElement('td');
                     let fitnessParsed = parseFloat(msg[1]);
                     genFitness.innerHTML = fitnessParsed > 0.01 ? fitnessParsed.toFixed(2) : fitnessParsed.toExponential(2);
@@ -107,7 +120,7 @@
                     gen.appendChild(genFitness);
                     gen.classList = 'newest';
                     if(tableBody.childNodes.length > 0) {
-                        document.getElementsByClassName('newest')[0].classList = '';
+                        document.getElementsByClassName('newest')[0].classList = 'old';
                         gen.classList = 'newest';
                         tableBody.insertBefore(gen, tableBody.childNodes[0]);
                     }
@@ -127,6 +140,19 @@
                 stopBtn.style.display = 'none';
                 python.childProcess.kill('SIGINT');
                 iter = 0;
+            }
+
+            function diff(prev, curr) {
+                let diffString = '';
+                for(let i = 0; i < curr.length; i++) {
+                    if(curr.charAt(i) != prev.charAt(i)) {
+                        diffString += `<span class='diff'>${curr.charAt(i)}</span>`
+                    }
+                    else {
+                        diffString += curr.charAt(i);
+                    }
+                }
+                return diffString;
             }
         </script>
     </body>
