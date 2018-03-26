@@ -8,15 +8,14 @@
         <style>
             #gen-table td {
                 border: 1px solid lightgray;
-            }
-
-            #gen-body > tr:first-child {
-                border: 1px red;
+                font-size: 300%;
+                color: lightgray;
             }
 
             .newest {
-                font-size: 300%;
-                font-style: bold;
+                /* font-size: 300%; */
+                color: black !important;
+                background-color: gray;
             }
         </style>
     </head>
@@ -83,11 +82,11 @@
             function start() {
                 if(tgt.value.length == 0) {return;}
                 tableBody.innerHTML = '';
-                iter = 0;
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
                 let options = {
-                    args: [tgt.value, mut.value/100, pop.value]
+                    args: [tgt.value, mut.value/100, pop.value],
+                    pythonOptions: ['-u']
                 }
                 python = new PythonShell('script.py', options);
 
@@ -101,13 +100,15 @@
                     let genFittest = document.createElement('td');
                     genFittest.innerHTML = msg[0];
                     let genFitness = document.createElement('td');
-                    genFitness.innerHTML = parseFloat(msg[1]) > 0.01 ? msg[1] : parseFloat(msg[1]).toExponential(2);
+                    let fitnessParsed = parseFloat(msg[1]);
+                    genFitness.innerHTML = fitnessParsed > 0.01 ? fitnessParsed.toFixed(2) : fitnessParsed.toExponential(2);
                     gen.appendChild(genCount);
                     gen.appendChild(genFittest);
                     gen.appendChild(genFitness);
                     gen.classList = 'newest';
                     if(tableBody.childNodes.length > 0) {
                         document.getElementsByClassName('newest')[0].classList = '';
+                        gen.classList = 'newest';
                         tableBody.insertBefore(gen, tableBody.childNodes[0]);
                     }
                     else {
