@@ -8,5 +8,5 @@ p = Population(pop_size, mutation_rate, target_word)
 while p.get_best().fitness < 1.0:
     print(''.join(p.get_best().genotype) + '|' + str(p.get_best().fitness))
     p.natural_selection()
-    sleep(0.025)
+    sleep(0.05)
 print(''.join(p.get_best().genotype) + '|' + str(p.get_best().fitness))

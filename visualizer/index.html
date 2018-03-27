@@ -24,8 +24,21 @@
                 color: black;
             }
 
-            .diff {
+            .diff-right {
                 background-color: rgba(0, 255, 0, 0.1)
+            }
+
+            .diff-wrong {
+                background-color: rgba(255, 255, 0, 0.2)
+            }
+
+            .diff-wronger {
+                background-color: rgba(255, 0, 0, 0.1)
+            }
+
+            #mut-display {
+                border: 0;
+                width: 10%;
             }
         </style>
     </head>
@@ -37,7 +50,9 @@
                     <input id="target-input" oninput="onTgtChange();" class="form-control" placeholder="Enter a target string..."></input>
                 </td>
                 <td style="width: 34%;">
-                    <label for="mutation-input">Mutation Rate (</label><span id="mut-display">0.5</span>)<br>
+                    <!-- <label for="mutation-input">Mutation Rate (</label><span id="mut-display">0.5</span>)<br> -->
+                    <label for="mutation-input">Mutation Rate (</label><input id="mut-display" value="0.5" style="text-align: center;"></input>)<br>
+                    <!-- <label for="mutation-input">Mutation Rate (</label><span id="mut-display" contenteditable="true">0.5</span>)<br> -->
                     <input id="mutation-input" type="range" min="0" max="100" value="50" oninput="onMutSliderChange();"></input>
                 </td>
                 <td style="width: 33%;">
@@ -55,7 +70,7 @@
         <table id="gen-table" style="width: 100%; border: 1px solid lightgray; text-align: center;">
             <thead>
                 <tr id="heading">
-                    <th style="width: 10%; border: 1px solid lightgray;">Gen</th>
+                    <th style="width: 10%; border: 1px solid lightgray;">Generation</th>
                     <th>Fittest</th>
                     <th style="width: 20%; border: 1px solid lightgray;">Fitness</th>
                 </tr>
@@ -64,7 +79,9 @@
         </table>
         <script>
             let tgt = document.getElementById('target-input');
+            tgt.focus();
             let mut = document.getElementById('mutation-input');
+            let mutTextInput = document.getElementById('mut-display');
             let pop = document.getElementById('pop-input');
             let table = document.getElementById('gen-table');
             let tableBody = document.getElementById('gen-body');
@@ -73,10 +90,55 @@
 
             let prev = '';
 
+            let electron = require('electron');
+            let {remote} = electron;
             let PythonShell = require('python-shell');
             let python;
 
             let iter = 0;
+            let tgtString = '';
+
+            mutTextInput.addEventListener('keydown', e => {
+                if(!((e.keyCode >= 48 && e.keyCode <= 57) || e.keyCode == 190 || e.keyCode == 8 || e.ctrlKey || (e.keyCode >= 37 && e.keyCode <= 40))) {
+                    e.preventDefault();
+                }
+                if(e.keyCode == 190 && mutTextInput.innerHTML.indexOf('.') > -1) {
+                    e.preventDefault();
+                }
+            });
+
+            mutTextInput.addEventListener('input', e => {
+                // console.log(mutTextInput.value);
+                if(mutTextInput.value == '') {
+                    mut.value = 0;
+                    return;
+                }
+                let parsed = parseFloat(mutTextInput.value);
+                if(parsed == NaN || parsed < 0) {
+                    mut.value = 0;
+                }
+                else if(parsed > 1) {
+                    mut.value = 100;
+                }
+                else {
+                    mut.value = parseInt(parsed * 100);
+                }
+            });
+
+            mutTextInput.addEventListener('change', e => {
+                let parsed = parseFloat(mutTextInput.value)
+                // console.log(parsed)
+                if(parsed < 0) {
+                    mutTextInput.value = 0;
+                }
+                else if(parsed > 1) {
+                    mutTextInput.value = 1;
+                }
+                else {
+                    mutTextInput.value = parsed.toFixed(2);
+                }
+                mut.value = parseInt(parseFloat(mutTextInput.value) * 100);
+            });
 
             function onTgtChange() {
                 if(tgt.value.length == 0) {
@@ -88,11 +150,13 @@
             }
 
             function onMutSliderChange() {
-                document.getElementById('mut-display').innerHTML = document.getElementById('mutation-input').value / 100;
+                document.getElementById('mut-display').value = document.getElementById('mutation-input').value / 100;
             }
 
             function start() {
                 if(tgt.value.length == 0) {return;}
+                tgtString = tgt.value;
+                console.log(remote.getGlobal('green'), remote.getGlobal('yellow'), remote.getGlobal('red'));
                 tableBody.innerHTML = '';
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
@@ -119,12 +183,21 @@
                     gen.appendChild(genFittest);
                     gen.appendChild(genFitness);
                     gen.classList = 'newest';
-                    if(tableBody.childNodes.length > 0) {
-                        document.getElementsByClassName('newest')[0].classList = 'old';
-                        gen.classList = 'newest';
-                        tableBody.insertBefore(gen, tableBody.childNodes[0]);
+                    if(remote.getGlobal('keepPriorGenerations')) {
+                        if(tableBody.childNodes.length > 0) {
+                            document.getElementsByClassName('newest')[0].classList = 'old';
+                            gen.classList = 'newest';
+                            tableBody.insertBefore(gen, tableBody.childNodes[0]);
+                        }
+                        else {
+                            tableBody.appendChild(gen);
+                        }
                     }
                     else {
+                        tableBody.innerHTML = '';
+                        if(iter > 0) {
+                            gen.classList = 'newest';
+                        }
                         tableBody.appendChild(gen);
                     }
                 });
@@ -146,7 +219,16 @@
                 let diffString = '';
                 for(let i = 0; i < curr.length; i++) {
                     if(curr.charAt(i) != prev.charAt(i)) {
-                        diffString += `<span class='diff'>${curr.charAt(i)}</span>`
+                        let wrongness = remote.getGlobal('green') ? 'right' : '';
+                        if(remote.getGlobal('yellow') && curr.charAt(i) != tgtString.charAt(i)) {
+                            if(remote.getGlobal('red') && prev.charAt(i) == tgtString.charAt(i)) {
+                                wrongness = 'wronger';
+                            }
+                            else {
+                                wrongness = 'wrong';
+                            }
+                        }
+                        diffString += `<span class="diff-${wrongness}">${curr.charAt(i)}</span>`
                     }
                     else {
                         diffString += curr.charAt(i);
