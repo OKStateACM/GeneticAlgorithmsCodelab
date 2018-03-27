@@ -50,14 +50,12 @@
                     <input id="target-input" oninput="onTgtChange();" class="form-control" placeholder="Enter a target string..."></input>
                 </td>
                 <td style="width: 34%;">
-                    <!-- <label for="mutation-input">Mutation Rate (</label><span id="mut-display">0.5</span>)<br> -->
                     <label for="mutation-input">Mutation Rate (</label><input id="mut-display" value="0.5" style="text-align: center;"></input>)<br>
-                    <!-- <label for="mutation-input">Mutation Rate (</label><span id="mut-display" contenteditable="true">0.5</span>)<br> -->
                     <input id="mutation-input" type="range" min="0" max="100" value="50" oninput="onMutSliderChange();"></input>
                 </td>
                 <td style="width: 33%;">
                     <label for="pop-input">Population Size:</label>
-                    <input id="pop-input" type="number" class="form-control" value="100"></input>
+                    <input id="pop-input" type="number" class="form-control" value="100" min="1" onchange="onPopChange();"></input>
                 </td>
             </table>
         </div>
@@ -151,6 +149,12 @@
 
             function onMutSliderChange() {
                 document.getElementById('mut-display').value = document.getElementById('mutation-input').value / 100;
+            }
+
+            function onPopChange() {
+                if(parseInt(pop.value) < 1) {
+                    pop.value = 1;
+                }
             }
 
             function start() {
