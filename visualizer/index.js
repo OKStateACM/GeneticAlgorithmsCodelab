@@ -1,17 +1,25 @@
 const electron = require('electron');
 const {app, BrowserWindow, Menu} = electron;
 
+let win;
+
 app.on('ready', () => {
     global.keepPriorGenerations = true;
     global.green = true;
     global.red = true;
     global.yellow = true;
-    let win = new BrowserWindow({});
+    global.dark = false;
+    win = new BrowserWindow({});
     let menu = Menu.buildFromTemplate(menuTemplate);
     Menu.setApplicationMenu(menu);
     win.loadURL(`file://${__dirname}/index.html`);
     win.maximize();
 });
+
+function swapTheme() {
+    global.dark = !global.dark;
+    win.webContents.send('THEME');
+}
 
 const menuTemplate = [
     {
@@ -36,6 +44,12 @@ const menuTemplate = [
                 type: 'checkbox',
                 checked: true,
                 click() {global.keepPriorGenerations = !global.keepPriorGenerations}
+            },
+            {
+                label: 'Dark Theme',
+                type: 'checkbox',
+                checked: false,
+                click() {swapTheme();}
             },
             {
                 label: 'Diffs',

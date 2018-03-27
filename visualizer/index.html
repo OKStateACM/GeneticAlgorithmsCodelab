@@ -5,7 +5,7 @@
         <title>Genetic Algorithm Visualizer</title>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
         <link href="https://maxcdn.bootstrapcdn.com/bootswatch/4.0.0/cosmo/bootstrap.min.css" rel="stylesheet"/>
-        <link href="https://fonts.googleapis.com/css?family=Fira+Mono" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Fira+Mono" rel="stylesheet"/>
         <style>
             #gen-table td {
                 border: 1px solid lightgray;
@@ -89,7 +89,7 @@
             let prev = '';
 
             let electron = require('electron');
-            let {remote} = electron;
+            let {remote, ipcRenderer} = electron;
             let PythonShell = require('python-shell');
             let python;
 
@@ -106,7 +106,6 @@
             });
 
             mutTextInput.addEventListener('input', e => {
-                // console.log(mutTextInput.value);
                 if(mutTextInput.value == '') {
                     mut.value = 0;
                     return;
@@ -125,7 +124,6 @@
 
             mutTextInput.addEventListener('change', e => {
                 let parsed = parseFloat(mutTextInput.value)
-                // console.log(parsed)
                 if(parsed < 0) {
                     mutTextInput.value = 0;
                 }
@@ -240,6 +238,19 @@
                 }
                 return diffString;
             }
+
+            ipcRenderer.on('THEME', event => {
+                if(remote.getGlobal('dark')) {
+                    let dark = document.createElement('link');
+                    dark.setAttribute('href', './dark.css');
+                    dark.setAttribute('rel', 'stylesheet');
+                    dark.setAttribute('id', 'dark');
+                    document.head.appendChild(dark);
+                }
+                else {
+                    document.head.removeChild(document.getElementById('dark'));
+                }
+            });
         </script>
     </body>
 </html>

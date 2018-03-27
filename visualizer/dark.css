@@ -1,0 +1,45 @@
+body {
+    background-color: #222;
+    color: #eee;
+}
+
+
+.btn {
+    background-color: #444;
+    color: darkgray;
+}
+
+.btn-success {
+    background-color: #339414;
+    color: white;
+}
+
+.old {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.newest {
+    color: lightgray !important;
+}
+
+.diff-right {
+    background-color: rgba(0, 255, 0, 0.25) !important;
+}
+
+.diff-wronger {
+    background-color: rgba(255, 0, 0, 0.25) !important;
+}
+
+#target-input, #pop-input {
+    background-color: #111;
+    color: lightgray;
+}
+
+#target-input::placeholder, #pop-input::placeholder {
+    color: #444;
+}
+
+#mut-display {
+    background-color: #222;
+    color: #eee;
+}
