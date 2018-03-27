@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Genetic Algorithm Visualizer</title>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        <link href="https://maxcdn.bootstrapcdn.com/bootswatch/4.0.0/cosmo/bootstrap.min.css" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css?family=Fira+Mono" rel="stylesheet">
+        <style>
+            #gen-table td {
+                border: 1px solid lightgray;
+                font-size: 300%;
+            }
+
+            .genotype {
+                font-family: 'Fira Mono', monospace;
+            }
+
+            .old {
+                color: lightgray;
+            }
+
+            .newest {
+                color: black;
+            }
+
+            .diff-right {
+                background-color: rgba(0, 255, 0, 0.1)
+            }
+
+            .diff-wrong {
+                background-color: rgba(255, 255, 0, 0.2)
+            }
+
+            .diff-wronger {
+                background-color: rgba(255, 0, 0, 0.1)
+            }
+
+            #mut-display {
+                border: 0;
+                width: 10%;
+            }
+        </style>
+    </head>
+    <body style="width: 100vw;">
+        <div>
+            <table style="width: 90%; align: center; text-align: center; margin: 0 auto;">
+                <td style="width: 33%;">
+                    <label for="target-input">Target:</label>
+                    <input id="target-input" oninput="onTgtChange();" class="form-control" placeholder="Enter a target string..."></input>
+                </td>
+                <td style="width: 34%;">
+                    <label for="mutation-input">Mutation Rate (</label><input id="mut-display" value="0.5" style="text-align: center;"></input>)<br>
+                    <input id="mutation-input" type="range" min="0" max="100" value="50" oninput="onMutSliderChange();"></input>
+                </td>
+                <td style="width: 33%;">
+                    <label for="pop-input">Population Size:</label>
+                    <input id="pop-input" type="number" class="form-control" value="100" min="1" onchange="onPopChange();"></input>
+                </td>
+            </table>
+        </div>
+        <br/>
+        <center>
+            <input id="start" onclick="start();" type="submit" value="Start" class="btn" style="width: 50%;"></input>
+            <input id="stop" onclick="stop();" type="submit" value="Stop" class="btn btn-danger" style="width: 50%; display: none;"></input>
+        </center>
+        <br/>
+        <table id="gen-table" style="width: 100%; border: 1px solid lightgray; text-align: center;">
+            <thead>
+                <tr id="heading">
+                    <th style="width: 10%; border: 1px solid lightgray;">Generation</th>
+                    <th>Fittest</th>
+                    <th style="width: 20%; border: 1px solid lightgray;">Fitness</th>
+                </tr>
+            </thead>
+            <tbody id="gen-body"></tbody>
+        </table>
+        <script>
+            let tgt = document.getElementById('target-input');
+            tgt.focus();
+            let mut = document.getElementById('mutation-input');
+            let mutTextInput = document.getElementById('mut-display');
+            let pop = document.getElementById('pop-input');
+            let table = document.getElementById('gen-table');
+            let tableBody = document.getElementById('gen-body');
+            let startBtn = document.getElementById('start');
+            let stopBtn = document.getElementById('stop');
+
+            let prev = '';
+
+            let electron = require('electron');
+            let {remote} = electron;
+            let PythonShell = require('python-shell');
+            let python;
+
+            let iter = 0;
+            let tgtString = '';
+
+            mutTextInput.addEventListener('keydown', e => {
+                if(!((e.keyCode >= 48 && e.keyCode <= 57) || e.keyCode == 190 || e.keyCode == 8 || e.ctrlKey || (e.keyCode >= 37 && e.keyCode <= 40))) {
+                    e.preventDefault();
+                }
+                if(e.keyCode == 190 && mutTextInput.innerHTML.indexOf('.') > -1) {
+                    e.preventDefault();
+                }
+            });
+
+            mutTextInput.addEventListener('input', e => {
+                // console.log(mutTextInput.value);
+                if(mutTextInput.value == '') {
+                    mut.value = 0;
+                    return;
+                }
+                let parsed = parseFloat(mutTextInput.value);
+                if(parsed == NaN || parsed < 0) {
+                    mut.value = 0;
+                }
+                else if(parsed > 1) {
+                    mut.value = 100;
+                }
+                else {
+                    mut.value = parseInt(parsed * 100);
+                }
+            });
+
+            mutTextInput.addEventListener('change', e => {
+                let parsed = parseFloat(mutTextInput.value)
+                // console.log(parsed)
+                if(parsed < 0) {
+                    mutTextInput.value = 0;
+                }
+                else if(parsed > 1) {
+                    mutTextInput.value = 1;
+                }
+                else {
+                    mutTextInput.value = parsed.toFixed(2);
+                }
+                mut.value = parseInt(parseFloat(mutTextInput.value) * 100);
+            });
+
+            function onTgtChange() {
+                if(tgt.value.length == 0) {
+                    startBtn.classList = 'btn'
+                }
+                else {
+                    startBtn.classList = 'btn btn-success'
+                }
+            }
+
+            function onMutSliderChange() {
+                document.getElementById('mut-display').value = document.getElementById('mutation-input').value / 100;
+            }
+
+            function onPopChange() {
+                if(parseInt(pop.value) < 1) {
+                    pop.value = 1;
+                }
+            }
+
+            function start() {
+                if(tgt.value.length == 0) {return;}
+                tgtString = tgt.value;
+                console.log(remote.getGlobal('green'), remote.getGlobal('yellow'), remote.getGlobal('red'));
+                tableBody.innerHTML = '';
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+                let options = {
+                    args: [tgt.value, mut.value/100, pop.value],
+                    pythonOptions: ['-u']
+                }
+                python = new PythonShell('script.py', options);
+
+                python.on('message', (message) => {
+                    iter++;
+                    let msg = message.split('|');
+                    let gen = document.createElement('tr');
+                    let genCount = document.createElement('td');
+                    genCount.innerHTML = iter;
+                    let genFittest = document.createElement('td');
+                    genFittest.innerHTML = iter > 1 ? diff(prev, msg[0]) : msg[0];
+                    prev = msg[0];
+                    genFittest.classList = 'genotype';
+                    let genFitness = document.createElement('td');
+                    let fitnessParsed = parseFloat(msg[1]);
+                    genFitness.innerHTML = fitnessParsed > 0.01 ? fitnessParsed.toFixed(2) : fitnessParsed.toExponential(2);
+                    gen.appendChild(genCount);
+                    gen.appendChild(genFittest);
+                    gen.appendChild(genFitness);
+                    gen.classList = 'newest';
+                    if(remote.getGlobal('keepPriorGenerations')) {
+                        if(tableBody.childNodes.length > 0) {
+                            document.getElementsByClassName('newest')[0].classList = 'old';
+                            gen.classList = 'newest';
+                            tableBody.insertBefore(gen, tableBody.childNodes[0]);
+                        }
+                        else {
+                            tableBody.appendChild(gen);
+                        }
+                    }
+                    else {
+                        tableBody.innerHTML = '';
+                        if(iter > 0) {
+                            gen.classList = 'newest';
+                        }
+                        tableBody.appendChild(gen);
+                    }
+                });
+
+                python.end(error => {
+                    if(error) {throw error;}
+                    stop();
+                });
+            }
+
+            function stop() {
+                startBtn.style.display = 'block';
+                stopBtn.style.display = 'none';
+                python.childProcess.kill('SIGINT');
+                iter = 0;
+            }
+
+            function diff(prev, curr) {
+                let diffString = '';
+                for(let i = 0; i < curr.length; i++) {
+                    if(curr.charAt(i) != prev.charAt(i)) {
+                        let wrongness = remote.getGlobal('green') ? 'right' : '';
+                        if(remote.getGlobal('yellow') && curr.charAt(i) != tgtString.charAt(i)) {
+                            if(remote.getGlobal('red') && prev.charAt(i) == tgtString.charAt(i)) {
+                                wrongness = 'wronger';
+                            }
+                            else {
+                                wrongness = 'wrong';
+                            }
+                        }
+                        diffString += `<span class="diff-${wrongness}">${curr.charAt(i)}</span>`
+                    }
+                    else {
+                        diffString += curr.charAt(i);
+                    }
+                }
+                return diffString;
+            }
+        </script>
+    </body>
+</html>
