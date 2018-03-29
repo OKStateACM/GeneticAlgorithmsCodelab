@@ -1,6 +1,6 @@
 # Introduction to the Project
 
-To learn about genetic algorithms, we're going to use them in a relatively simple problem. We're going to writing an algorithm that will generate a given piece of text. How this algorithm should work is detailed below:
+To learn about genetic algorithms, we're going to use them in a relatively simple problem. We're going to be writing an algorithm that will generate a given piece of text. How this algorithm should work is detailed below:
 
 **Input**: <kbd>some text from the user</kbd><br />
 **Output**: that same text
